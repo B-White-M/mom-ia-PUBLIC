@@ -201,4 +201,5 @@ It decides what the message means,
 what memory matters,
 and how the assistant should respond.
 
-<img width="3727" height="948" alt="image" src="https://github.com/user-attachments/assets/4a48ec92-c7ec-4a5c-841f-3328125e0f0f" />
+
+<img width="3719" height="945" alt="image" src="https://github.com/user-attachments/assets/9661e235-e58f-4db0-bfd1-ecd88bad4e3e" />
