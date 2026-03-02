@@ -79,6 +79,8 @@ Routes based on:
 
 This ensures modality-specific processing.
 
+<img width="2587" height="1700" alt="image" src="https://github.com/user-attachments/assets/288b6507-5792-4b2a-90bf-1d19fbe0aa1e" />
+
 ---
 
 # TEXT PATH
@@ -200,6 +202,8 @@ This table acts as a queue layer before:
 - Intent detection
 - Embedding generation
 - Chat thread persistence
+
+<img width="1346" height="414" alt="image" src="https://github.com/user-attachments/assets/15f3ced0-7012-4b3a-8d30-941dfba7d41d" />
 
 ---
 
