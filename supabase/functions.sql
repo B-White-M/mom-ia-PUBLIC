@@ -1,16 +1,21 @@
 -- =========================================================
+-- NOTE:
+-- This file was translated to English for public showcase purposes.
+-- Original production implementation may use localized naming.
+-- =========================================================
+-- =========================================================
 -- MOM IA — Database Functions (Supabase / PostgreSQL)
--- Purpose: core orchestration helpers for queue processing,
+-- Purpose: Core orchestration helpers for queue processing,
 --          retrieval (RAG), and computed fields.
 -- Notes:
 --  - Public showcase version (sanitized).
 -- =========================================================
 -- =========================================================
--- 1) Queue Worker: Move oldest bucket record -> chats_threads
+-- 1) Queue Worker: Move oldest bucket record -> chat_threads
 -- Concurrency-safe using FOR UPDATE SKIP LOCKED
 -- Idempotent insert using ON CONFLICT to avoid duplicates
 -- =========================================================
-create or replace function public.move_oldest_bucket_to_chats_threads()
+create or replace function public.move_oldest_bucket_to_chat_threads()
 returns jsonb
 language plpgsql
 as $$
@@ -18,11 +23,11 @@ declare
   r record;
   inserted record;
 begin
-  -- Take oldest row from bucket (concurrency-safe)
+  -- Take oldest row from message bucket (concurrency-safe)
   select *
   into r
-  from public.bucket_im_clientes
-  order by fecha_creacion asc
+  from public.message_bucket
+  order by created_at asc
   limit 1
   for update skip locked;
 
@@ -31,54 +36,54 @@ begin
   end if;
 
   -- Insert into final table (idempotent)
-  insert into public.chats_threads (
+  insert into public.chat_threads (
     wa_id,
-    fecha_creacion,
-    nombre_cliente,
-    origen_mensaje,
+    created_at,
+    customer_name,
+    message_origin,
     message_received,
-    tienda_tel,
+    store_phone,
     id_unique,
     embedding,
     assistant_tone,
     user_intent,
     intent_confidence,
     total_tokens,
-    inventory_send,
-    resumen_contexto,
+    inventory_sent,
+    context_summary,
     last_2_received,
-    last_2_send,
-    products_asked,
+    last_2_sent,
+    products_requested,
     rollback_context,
     human_request,
-    force_re_send
+    force_resend
   )
   values (
     r.wa_id,
-    r.fecha_creacion,
-    r.nombre_cliente,
-    r.origen_mensaje,
+    r.created_at,
+    r.customer_name,
+    r.message_origin,
     r.message_received,
-    r.tienda_tel,
+    r.store_phone,
     r.id_unique,
     r.embedding,
     r.assistant_tone,
     r.user_intent,
     r.intent_confidence,
     r.total_tokens,
-    r.inventory_send,
-    r.resumen_contexto,
+    r.inventory_sent,
+    r.context_summary,
     r.last_2_received,
-    r.last_2_send,
-    r.products_asked,
+    r.last_2_sent,
+    r.products_requested,
     r.rollback_context,
     r.human_request,
-    r.force_re_send
+    r.force_resend
   )
   on conflict (id_unique) do nothing
   returning * into inserted;
 
-  -- If it didn't insert (duplicate), do not delete from bucket
+  -- If not inserted (duplicate), do not delete from bucket
   if inserted is null then
     return jsonb_build_object(
       'moved', false,
@@ -88,24 +93,25 @@ begin
   end if;
 
   -- Delete processed item from bucket
-  delete from public.bucket_im_clientes
+  delete from public.message_bucket
   where id_unique = r.id_unique;
 
-  return jsonb_build_object('moved', true, 'chats_threads_row', to_jsonb(inserted));
+  return jsonb_build_object('moved', true, 'chat_threads_row', to_jsonb(inserted));
 end;
 $$;
 
 
+
 -- =========================================================
--- 2) Vector Similarity Search (RAG) — chats_threads
+-- 2) Vector Similarity Search (RAG) — chat_threads
 -- Requires pgvector extension and "embedding" vector column.
 -- =========================================================
-drop function if exists public.rollback_search_chats_threads(
+drop function if exists public.rollback_search_chat_threads(
   text, text, text, double precision, integer
 );
 
-create function public.rollback_search_chats_threads(
-  p_tienda_tel text,
+create function public.rollback_search_chat_threads(
+  p_store_phone text,
   p_wa_id text,
   p_query_text text,
   p_match_threshold double precision,
@@ -113,8 +119,8 @@ create function public.rollback_search_chats_threads(
 )
 returns table (
   id_unique uuid,
-  fecha_creacion timestamptz,
-  resumen_contexto text,
+  created_at timestamptz,
+  context_summary text,
   message_received text,
   similarity double precision
 )
@@ -125,13 +131,13 @@ as $$
   )
   select
     ct.id_unique,
-    ct.fecha_creacion,
-    ct.resumen_contexto,
+    ct.created_at,
+    ct.context_summary,
     ct.message_received,
     1 - (ct.embedding <=> q.query_vec) as similarity
-  from public.chats_threads ct
+  from public.chat_threads ct
   cross join q
-  where ct.tienda_tel = p_tienda_tel
+  where ct.store_phone = p_store_phone
     and ct.wa_id = p_wa_id
     and ct.embedding is not null
     and 1 - (ct.embedding <=> q.query_vec) >= p_match_threshold
@@ -140,16 +146,17 @@ as $$
 $$;
 
 
+
 -- =========================================================
--- 3) Vector Similarity Search (RAG) — bucket_im_clientes
--- Useful for "pre-commit" rollback search before persistence.
+-- 3) Vector Similarity Search (RAG) — message_bucket
+-- Useful for pre-persistence rollback search.
 -- =========================================================
-drop function if exists public.rollback_search_bucket_im(
+drop function if exists public.rollback_search_message_bucket(
   text, text, text, double precision, integer
 );
 
-create function public.rollback_search_bucket_im(
-  p_tienda_tel text,
+create function public.rollback_search_message_bucket(
+  p_store_phone text,
   p_wa_id text,
   p_query_text text,
   p_match_threshold double precision,
@@ -157,8 +164,8 @@ create function public.rollback_search_bucket_im(
 )
 returns table (
   id_unique uuid,
-  fecha_creacion timestamptz,
-  resumen_contexto text,
+  created_at timestamptz,
+  context_summary text,
   message_received text,
   similarity double precision
 )
@@ -169,13 +176,13 @@ as $$
   )
   select
     b.id_unique,
-    b.fecha_creacion,
-    b.resumen_contexto,
+    b.created_at,
+    b.context_summary,
     b.message_received,
     1 - (b.embedding <=> q.query_vec) as similarity
-  from public.bucket_im_clientes b
+  from public.message_bucket b
   cross join q
-  where b.tienda_tel = p_tienda_tel
+  where b.store_phone = p_store_phone
     and b.wa_id = p_wa_id
     and b.embedding is not null
     and 1 - (b.embedding <=> q.query_vec) >= p_match_threshold
@@ -184,9 +191,10 @@ as $$
 $$;
 
 
+
 -- =========================================================
--- 4) Loyalty Score (Trigger Function)
--- Keeps "loyalty_score" consistent from "compras_realizadas".
+-- 4) Loyalty Score Trigger Function
+-- Keeps loyalty_score consistent based on purchase_count.
 -- =========================================================
 create or replace function public.set_loyalty_score()
 returns trigger
@@ -195,15 +203,16 @@ as $$
 begin
   new.loyalty_score :=
     case
-      when coalesce(new.compras_realizadas, 0)::int >= 3 then 'muy alta'
-      when coalesce(new.compras_realizadas, 0)::int = 2 then 'alta'
-      when coalesce(new.compras_realizadas, 0)::int = 1 then 'media'
-      else 'ninguna'
+      when coalesce(new.purchase_count, 0)::int >= 3 then 'very_high'
+      when coalesce(new.purchase_count, 0)::int = 2 then 'high'
+      when coalesce(new.purchase_count, 0)::int = 1 then 'medium'
+      else 'none'
     end;
 
   return new;
 end;
 $$;
 
--- NOTE: The trigger itself should live in supabase/triggers.sql
--- so this file remains "functions only".
+-- NOTE:
+-- The trigger definition itself should live in supabase/triggers.sql
+-- so this file remains focused on functions only.
