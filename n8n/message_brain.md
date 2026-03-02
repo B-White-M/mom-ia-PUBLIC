@@ -1,4 +1,4 @@
-# 02 — Message Brain (Intent, Memory & RAG Orchestration)
+# Message Brain (Intent, Memory & RAG Orchestration)
 
 ## Overview
 
