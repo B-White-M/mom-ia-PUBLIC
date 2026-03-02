@@ -1,0 +1,11 @@
+-- =========================================================
+-- MOM IA — Database Triggers
+-- NOTE:
+-- At the current architecture stage, MOM does not rely on
+-- database-level triggers for core business logic.
+--
+-- All deterministic state transitions are handled via
+-- explicit stored functions and workflow orchestration (n8n).
+--
+-- This file is intentionally minimal.
+-- =========================================================
