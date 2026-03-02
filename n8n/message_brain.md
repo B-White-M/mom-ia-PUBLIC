@@ -200,3 +200,5 @@ the Message Brain is the "cortex".
 It decides what the message means,
 what memory matters,
 and how the assistant should respond.
+
+<img width="3727" height="948" alt="image" src="https://github.com/user-attachments/assets/4a48ec92-c7ec-4a5c-841f-3328125e0f0f" />
