@@ -169,12 +169,3 @@ Updates `Chats_Threads`:
 The database remains the source of truth.
 
 ---
-
-# System Role
-
-If Normalization is the ears,
-and Message Brain is the cortex,
-
-Run MOM IA is the voice.
-
-It speaks — but only what the brain has carefully decided.
