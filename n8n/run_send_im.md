@@ -170,49 +170,6 @@ The database remains the source of truth.
 
 ---
 
-# Design Decisions
-
-- LLM does not store memory — database does.
-- JSON-only enforcement prevents prompt leakage.
-- Deterministic temperature reduces hallucinations.
-- ID tagging improves traceability.
-- Message batching avoids WhatsApp spam flags.
-- Structured field injection prevents accidental hallucinated context.
-
----
-
-# Security Considerations
-
-- Strict output format enforcement
-- No direct user-controlled prompt injection
-- Sanitized upstream input
-- Deterministic execution
-- Controlled multi-message output
-- Database-backed persistence
-
----
-
-# Responsibilities
-
-This workflow is responsible for:
-
-- Safe LLM execution
-- Output validation
-- Controlled external API interaction
-- State persistence
-- User-facing message delivery
-
-It does NOT:
-
-- Perform ingestion
-- Perform normalization
-- Perform embedding generation
-- Perform RAG retrieval
-
-Those belong to upstream modules.
-
----
-
 # System Role
 
 If Normalization is the ears,
