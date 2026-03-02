@@ -231,25 +231,6 @@ Those belong to downstream workflows.
 
 ---
 
-# Design Decisions
-
-- Audio is transcribed before intent detection to maintain single text pipeline.
-- Image OCR returns structured JSON to maintain deterministic parsing.
-- Sanitization occurs before DB write to reduce risk.
-- Country validation prevents resource misuse.
-- Bucket table separates ingestion from persistence logic.
-
----
-
-# Future Improvements
-
-- Rate limiting per wa_id
-- Message batching (1.5 minute window aggregation)
-- Automated language detection
-- Enhanced spam pattern recognition
-
----
-
 ## Position in Overall Architecture
 
 Twilio → n8n (Normalization) → Supabase Bucket → Intent Router → RAG → LLM → Response
