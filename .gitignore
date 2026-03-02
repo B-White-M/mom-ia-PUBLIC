@@ -137,3 +137,41 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+
+Byron Add-on:
+# Environment variables
+.env
+.env.*
+*.env
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Node modules (if using scripts)
+node_modules/
+
+# Build / dist folders
+dist/
+build/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Docker
+docker-compose.override.yml
+
+# n8n credentials export (if ever exported manually)
+credentials.json
+
+# Supabase local files
+.supabase/
